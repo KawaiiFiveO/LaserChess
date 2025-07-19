@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProjectGuid>{82A79553-3955-4E26-A961-E8CA2E650631}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>LaserChess</RootNamespace>
+    <AssemblyName>LaserChess</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ApplicationIcon>LaserChess.ico</ApplicationIcon>
+    <StartupObject>LaserChess.Client.MainClass</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="LaserChess.Logic">
+      <HintPath>..\..\de4dot\LaserChessOut\LaserChess.Logic.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.DirectX" />
+    <Reference Include="Microsoft.DirectX.Direct3D" />
+    <Reference Include="Microsoft.DirectX.Direct3DX" />
+    <Reference Include="Microsoft.VisualC" />
+    <Reference Include="System" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="TGClientLib">
+      <HintPath>..\..\de4dot\LaserChessOut\TGClientLib.dll</HintPath>
+    </Reference>
+    <Reference Include="TGDxGameLib">
+      <HintPath>..\..\de4dot\LaserChessOut\TGDxGameLib.dll</HintPath>
+    </Reference>
+    <Reference Include="TGGameLib">
+      <HintPath>..\..\de4dot\LaserChessOut\TGGameLib.dll</HintPath>
+    </Reference>
+    <Reference Include="TGPlayOgg">
+      <HintPath>..\..\de4dot\LaserChessOut\TGPlayOgg.dll</HintPath>
+    </Reference>
+    <Reference Include="TGSkinLib">
+      <HintPath>..\..\de4dot\LaserChessOut\TGSkinLib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Client\AlphaAnimation.cs" />
+    <Compile Include="Client\Animation.cs" />
+    <Compile Include="Client\AnimationList.cs" />
+    <Compile Include="Client\Avatar.cs" />
+    <Compile Include="Client\Board.cs" />
+    <Compile Include="Client\Button.cs" />
+    <Compile Include="Client\CaptureAnimation.cs" />
+    <Compile Include="Client\ChatEventArgs.cs" />
+    <Compile Include="Client\CommandPanel.cs" />
+    <Compile Include="Client\DisplayAnimation.cs" />
+    <Compile Include="Client\FadeInAnimation.cs" />
+    <Compile Include="Client\FadeOutAnimation.cs" />
+    <Compile Include="Client\FireLaserAnimation.cs" />
+    <Compile Include="Client\Game.cs" />
+    <Compile Include="Client\GameClass.cs" />
+    <Compile Include="Client\King.cs" />
+    <Compile Include="Client\MainClass.cs" />
+    <Compile Include="Client\MovePieceAnimation.cs" />
+    <Compile Include="Client\MoveRequestEventArgs.cs" />
+    <Compile Include="Client\Piece.cs" />
+    <Compile Include="Client\Player.cs" />
+    <Compile Include="Client\Popup.cs" />
+    <Compile Include="Client\PopupYesNo.cs" />
+    <Compile Include="Client\Properties\Resources.cs" />
+    <Compile Include="Client\Properties\Settings.Designer.cs">
+      <DependentUpon>Settings.settings</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="Client\SkinSprite.cs" />
+    <Compile Include="Client\SoundSystem.cs" />
+    <Compile Include="Client\SpriteList.cs" />
+    <Compile Include="Client\TeleportAnimation.cs" />
+    <Compile Include="Client\Teleporter.cs" />
+    <Compile Include="Client\TranslationAnimation.cs" />
+    <Compile Include="Client\TurnPieceAnimation.cs" />
+    <Compile Include="ns0\Class0.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Client\LaserChess.ico" />
+    <EmbeddedResource Include="Client\Properties\Resources.resources" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Client\Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
