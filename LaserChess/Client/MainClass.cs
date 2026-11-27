@@ -5,15 +5,12 @@ using TG.DxGame;
 
 namespace LaserChess.Client
 {
-	// Token: 0x02000029 RID: 41
 	public sealed class MainClass
 	{
-		// Token: 0x0600012A RID: 298 RVA: 0x00002050 File Offset: 0x00000250
 		private MainClass()
 		{
 		}
 
-		// Token: 0x0600012B RID: 299 RVA: 0x00007888 File Offset: 0x00005A88
 		[STAThread]
 		private static void Main()
 		{

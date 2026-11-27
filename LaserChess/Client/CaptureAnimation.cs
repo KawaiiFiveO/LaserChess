@@ -5,113 +5,93 @@ using TG.Skin;
 
 namespace LaserChess.Client
 {
-	// Token: 0x0200000F RID: 15
 	public class CaptureAnimation : Animation
 	{
-		// Token: 0x0600005A RID: 90 RVA: 0x000041A0 File Offset: 0x000023A0
-		public CaptureAnimation(Game game_1, SkinningClass skinningClass_0)
+		public CaptureAnimation(Game game, SkinningClass skin)
 		{
-			this.game_0 = game_1;
-			foreach (Piece piece in game_1.PieceList)
+			this.game = game;
+			foreach (Piece piece in game.PieceList)
 			{
-				piece.PieceLogic.CaptureEvent += this.method_0;
+				piece.PieceLogic.CaptureEvent += this.OnCapture;
 			}
 		}
 
-		// Token: 0x0600005B RID: 91 RVA: 0x00004218 File Offset: 0x00002418
-		private void method_0(object sender, CaptureEventArgs e)
+		private void OnCapture(object sender, CaptureEventArgs e)
 		{
-			this.tile_0 = e.Tile1;
-			this.tile_1 = e.Tile2;
-			this.piece_0 = this.game_0.FindPiece(e.Piece1);
-			this.piece_1 = this.game_0.FindPiece(e.Piece2);
-			this.method_1();
+			this.fromTile = e.Tile1;
+			this.toTile = e.Tile2;
+			this.attacker = this.game.FindPiece(e.Piece1);
+			this.captured = this.game.FindPiece(e.Piece2);
+			this.Start();
 		}
 
-		// Token: 0x0600005C RID: 92 RVA: 0x00002380 File Offset: 0x00000580
 		public override bool IsIdle()
 		{
-			return this.enum1_0 == CaptureAnimation.Enum1.const_0;
+			return this.state == CaptureAnimation.State.Idle;
 		}
 
-		// Token: 0x0600005D RID: 93 RVA: 0x00004274 File Offset: 0x00002474
-		public override void Update(float float_1)
+		public override void Update(float elapsed)
 		{
-			this.animationList_0.Update(float_1);
-			CaptureAnimation.Enum1 @enum = this.enum1_0;
-			if (@enum != CaptureAnimation.Enum1.const_1)
+			this.animations.Update(elapsed);
+			CaptureAnimation.State @enum = this.state;
+			if (@enum != CaptureAnimation.State.Capturing)
 			{
-				this.method_4();
+				this.Stop();
 				return;
 			}
-			this.method_2(float_1);
+			this.UpdateCapturing(elapsed);
 		}
 
-		// Token: 0x0600005E RID: 94 RVA: 0x000042A8 File Offset: 0x000024A8
-		private void method_1()
+		private void Start()
 		{
-			this.animationList_0.Clear();
-			PointF tileCenter = this.game_0.Board.GetTileCenter(this.tile_0);
-			PointF tileCenter2 = this.game_0.Board.GetTileCenter(this.tile_1);
-			this.animationList_0.Add(new TranslationAnimation(this.piece_0, tileCenter, tileCenter2, 0.25f));
-			this.animationList_0.Add(new FadeOutAnimation(this.piece_1, 0.25f));
-			this.game_0.SoundSystem.PlaySound(SoundSystem.Sound.CapturePiece);
-			this.enum1_0 = CaptureAnimation.Enum1.const_1;
+			this.animations.Clear();
+			PointF tileCenter = this.game.Board.GetTileCenter(this.fromTile);
+			PointF tileCenter2 = this.game.Board.GetTileCenter(this.toTile);
+			this.animations.Add(new TranslationAnimation(this.attacker, tileCenter, tileCenter2, 0.25f));
+			this.animations.Add(new FadeOutAnimation(this.captured, 0.25f));
+			this.game.SoundSystem.PlaySound(SoundSystem.Sound.CapturePiece);
+			this.state = CaptureAnimation.State.Capturing;
 		}
 
-		// Token: 0x0600005F RID: 95 RVA: 0x0000238B File Offset: 0x0000058B
-		private void method_2(float float_1)
+		private void UpdateCapturing(float elapsed)
 		{
-			if (this.animationList_0.IsIdle())
+			if (this.animations.IsIdle())
 			{
-				this.method_3();
+				this.OnCaptureFinished();
 			}
 		}
 
-		// Token: 0x06000060 RID: 96 RVA: 0x000023A0 File Offset: 0x000005A0
-		private void method_3()
+		private void OnCaptureFinished()
 		{
-			this.method_4();
+			this.Stop();
 		}
 
-		// Token: 0x06000061 RID: 97 RVA: 0x000023A8 File Offset: 0x000005A8
-		private void method_4()
+		private void Stop()
 		{
-			this.animationList_0.Clear();
-			this.enum1_0 = CaptureAnimation.Enum1.const_0;
+			this.animations.Clear();
+			this.state = CaptureAnimation.State.Idle;
 		}
 
-		// Token: 0x04000055 RID: 85
-		private const float float_0 = 0.25f;
+		private const float CaptureDuration = 0.25f;
 
-		// Token: 0x04000056 RID: 86
-		private Game game_0;
+		private Game game;
 
-		// Token: 0x04000057 RID: 87
-		private LaserChess.Logic.Tile tile_0;
+		private LaserChess.Logic.Tile fromTile;
 
-		// Token: 0x04000058 RID: 88
-		private LaserChess.Logic.Tile tile_1;
+		private LaserChess.Logic.Tile toTile;
 
-		// Token: 0x04000059 RID: 89
-		private Piece piece_0;
+		private Piece attacker;
 
-		// Token: 0x0400005A RID: 90
-		private Piece piece_1;
+		private Piece captured;
 
-		// Token: 0x0400005B RID: 91
-		private CaptureAnimation.Enum1 enum1_0;
+		private CaptureAnimation.State state;
 
-		// Token: 0x0400005C RID: 92
-		private AnimationList animationList_0 = new AnimationList();
+		private AnimationList animations = new AnimationList();
 
-		// Token: 0x02000010 RID: 16
-		private enum Enum1
+		private enum State
 		{
-			// Token: 0x0400005E RID: 94
-			const_0,
-			// Token: 0x0400005F RID: 95
-			const_1
+			Idle,
+			Capturing
 		}
 	}
 }

@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -27,41 +27,69 @@
     <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="LaserChess.Logic">
-      <HintPath>..\..\de4dot\LaserChessOut\LaserChess.Logic.dll</HintPath>
+    <!-- Managed DirectX 1.1 from the DirectX End-User Runtime (June 2010), at the versions the original build used. -->
+    <Reference Include="Microsoft.DirectX, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+      <SpecificVersion>True</SpecificVersion>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="Microsoft.DirectX" />
-    <Reference Include="Microsoft.DirectX.Direct3D" />
-    <Reference Include="Microsoft.DirectX.Direct3DX" />
+    <Reference Include="Microsoft.DirectX.Direct3D, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+      <SpecificVersion>True</SpecificVersion>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.DirectX.Direct3DX, Version=1.0.2909.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+      <SpecificVersion>True</SpecificVersion>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Microsoft.VisualC" />
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="LaserChess.Logic">
+      <HintPath>..\OriginalDLLs\LaserChess.Logic.dll</HintPath>
+    </Reference>
     <Reference Include="TGClientLib">
-      <HintPath>..\..\de4dot\LaserChessOut\TGClientLib.dll</HintPath>
+      <HintPath>..\OriginalDLLs\TGClientLib.dll</HintPath>
     </Reference>
     <Reference Include="TGDxGameLib">
-      <HintPath>..\..\de4dot\LaserChessOut\TGDxGameLib.dll</HintPath>
+      <HintPath>..\OriginalDLLs\TGDxGameLib.dll</HintPath>
     </Reference>
     <Reference Include="TGGameLib">
-      <HintPath>..\..\de4dot\LaserChessOut\TGGameLib.dll</HintPath>
+      <HintPath>..\OriginalDLLs\TGGameLib.dll</HintPath>
+    </Reference>
+    <Reference Include="TGLib">
+      <HintPath>..\OriginalDLLs\TGLib.dll</HintPath>
     </Reference>
     <Reference Include="TGPlayOgg">
-      <HintPath>..\..\de4dot\LaserChessOut\TGPlayOgg.dll</HintPath>
+      <HintPath>..\OriginalDLLs\TGPlayOgg.dll</HintPath>
     </Reference>
     <Reference Include="TGSkinLib">
-      <HintPath>..\..\de4dot\LaserChessOut\TGSkinLib.dll</HintPath>
+      <HintPath>..\OriginalDLLs\TGSkinLib.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Runtime files the game loads from its own folder. -->
+    <None Include="..\OriginalDLLs\skin.pak">
+      <Link>skin.pak</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\OriginalDLLs\splash.png">
+      <Link>splash.png</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\OriginalDLLs\TgPlayOgg_vorbisfile.dll">
+      <Link>TgPlayOgg_vorbisfile.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\OriginalDLLs\TGClientLib.XmlSerializers.dll">
+      <Link>TGClientLib.XmlSerializers.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <AppDesigner Include="Properties\" />
@@ -89,6 +117,7 @@
     <Compile Include="Client\Piece.cs" />
     <Compile Include="Client\Player.cs" />
     <Compile Include="Client\Popup.cs" />
+    <Compile Include="Client\PopupCollection.cs" />
     <Compile Include="Client\PopupYesNo.cs" />
     <Compile Include="Client\Properties\Resources.cs" />
     <Compile Include="Client\Properties\Settings.Designer.cs">
@@ -103,7 +132,6 @@
     <Compile Include="Client\Teleporter.cs" />
     <Compile Include="Client\TranslationAnimation.cs" />
     <Compile Include="Client\TurnPieceAnimation.cs" />
-    <Compile Include="ns0\Class0.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

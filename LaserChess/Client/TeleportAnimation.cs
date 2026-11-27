@@ -5,212 +5,180 @@ using TG.Skin;
 
 namespace LaserChess.Client
 {
-	// Token: 0x02000021 RID: 33
 	public class TeleportAnimation : Animation
 	{
-		// Token: 0x060000B1 RID: 177 RVA: 0x000053FC File Offset: 0x000035FC
-		public TeleportAnimation(Game game_1, SkinningClass skinningClass_0)
+		public TeleportAnimation(Game game, SkinningClass skin)
 		{
-			this.game_0 = game_1;
-			foreach (Piece piece in game_1.PieceList)
+			this.game = game;
+			foreach (Piece piece in game.PieceList)
 			{
-				piece.PieceLogic.TeleportEvent += this.method_0;
+				piece.PieceLogic.TeleportEvent += this.OnTeleport;
 			}
 		}
 
-		// Token: 0x060000B2 RID: 178 RVA: 0x00005474 File Offset: 0x00003674
-		private void method_0(object sender, TeleportEventArgs e)
+		private void OnTeleport(object sender, TeleportEventArgs e)
 		{
-			this.tile_0 = e.Tile1;
-			this.tile_1 = e.Tile2;
-			this.tile_2 = e.Tile3;
-			this.piece_0 = null;
-			this.piece_1 = null;
-			this.piece_2 = null;
+			this.fromTile = e.Tile1;
+			this.padTile = e.Tile2;
+			this.destinationTile = e.Tile3;
+			this.movingPiece = null;
+			this.teleportingPiece = null;
+			this.destroyedPiece = null;
 			if (e.Piece1 != null)
 			{
-				this.piece_0 = this.game_0.FindPiece(e.Piece1);
+				this.movingPiece = this.game.FindPiece(e.Piece1);
 			}
 			if (e.Piece2 != null)
 			{
-				this.piece_1 = this.game_0.FindPiece(e.Piece2);
+				this.teleportingPiece = this.game.FindPiece(e.Piece2);
 			}
 			if (e.Piece3 != null)
 			{
-				this.piece_2 = this.game_0.FindPiece(e.Piece3);
+				this.destroyedPiece = this.game.FindPiece(e.Piece3);
 			}
-			this.method_1();
+			this.Start();
 		}
 
-		// Token: 0x060000B3 RID: 179 RVA: 0x000026DB File Offset: 0x000008DB
 		public override bool IsIdle()
 		{
-			return this.enum7_0 == TeleportAnimation.Enum7.const_0;
+			return this.state == TeleportAnimation.State.Idle;
 		}
 
-		// Token: 0x060000B4 RID: 180 RVA: 0x00005520 File Offset: 0x00003720
-		public override void Update(float float_3)
+		public override void Update(float elapsed)
 		{
-			this.animationList_0.Update(float_3);
-			switch (this.enum7_0)
+			this.animations.Update(elapsed);
+			switch (this.state)
 			{
-			case TeleportAnimation.Enum7.const_1:
-				this.method_2();
+			case TeleportAnimation.State.Moving:
+				this.UpdateMoving();
 				return;
-			case TeleportAnimation.Enum7.const_2:
-				this.method_5();
+			case TeleportAnimation.State.FadingOut:
+				this.UpdateFadingOut();
 				return;
-			case TeleportAnimation.Enum7.const_3:
-				this.method_8();
+			case TeleportAnimation.State.FadingIn:
+				this.UpdateFadingIn();
 				return;
 			default:
-				this.method_10();
+				this.Stop();
 				return;
 			}
 		}
 
-		// Token: 0x060000B5 RID: 181 RVA: 0x00005570 File Offset: 0x00003770
-		private void method_1()
+		private void Start()
 		{
-			this.animationList_0.Clear();
-			PointF tileCenter = this.game_0.Board.GetTileCenter(this.tile_0);
-			PointF tileCenter2 = this.game_0.Board.GetTileCenter(this.tile_1);
-			this.animationList_0.Add(new TranslationAnimation(this.piece_0, tileCenter, tileCenter2, 0.25f));
-			this.game_0.SoundSystem.PlaySound(SoundSystem.Sound.MovePiece);
-			this.enum7_0 = TeleportAnimation.Enum7.const_1;
+			this.animations.Clear();
+			PointF tileCenter = this.game.Board.GetTileCenter(this.fromTile);
+			PointF tileCenter2 = this.game.Board.GetTileCenter(this.padTile);
+			this.animations.Add(new TranslationAnimation(this.movingPiece, tileCenter, tileCenter2, 0.25f));
+			this.game.SoundSystem.PlaySound(SoundSystem.Sound.MovePiece);
+			this.state = TeleportAnimation.State.Moving;
 		}
 
-		// Token: 0x060000B6 RID: 182 RVA: 0x000026E6 File Offset: 0x000008E6
-		private void method_2()
+		private void UpdateMoving()
 		{
-			if (this.animationList_0.IsIdle())
+			if (this.animations.IsIdle())
 			{
-				this.method_3();
+				this.OnMoveFinished();
 			}
 		}
 
-		// Token: 0x060000B7 RID: 183 RVA: 0x000026FB File Offset: 0x000008FB
-		private void method_3()
+		private void OnMoveFinished()
 		{
-			this.method_4();
+			this.StartFadeOut();
 		}
 
-		// Token: 0x060000B8 RID: 184 RVA: 0x000055EC File Offset: 0x000037EC
-		private void method_4()
+		private void StartFadeOut()
 		{
-			this.animationList_0.Clear();
-			this.animationList_0.Add(new FadeOutAnimation(this.piece_1, 1.2f));
-			this.game_0.SoundSystem.PlaySound(SoundSystem.Sound.TeleportOut);
-			this.enum7_0 = TeleportAnimation.Enum7.const_2;
+			this.animations.Clear();
+			this.animations.Add(new FadeOutAnimation(this.teleportingPiece, 1.2f));
+			this.game.SoundSystem.PlaySound(SoundSystem.Sound.TeleportOut);
+			this.state = TeleportAnimation.State.FadingOut;
 		}
 
-		// Token: 0x060000B9 RID: 185 RVA: 0x00002703 File Offset: 0x00000903
-		private void method_5()
+		private void UpdateFadingOut()
 		{
-			if (this.animationList_0.IsIdle())
+			if (this.animations.IsIdle())
 			{
-				this.method_6();
+				this.OnFadeOutFinished();
 			}
 		}
 
-		// Token: 0x060000BA RID: 186 RVA: 0x00002718 File Offset: 0x00000918
-		private void method_6()
+		private void OnFadeOutFinished()
 		{
-			if (this.piece_1 != this.piece_2)
+			if (this.teleportingPiece != this.destroyedPiece)
 			{
-				this.method_7();
+				this.StartFadeIn();
 				return;
 			}
-			this.method_10();
+			this.Stop();
 		}
 
-		// Token: 0x060000BB RID: 187 RVA: 0x00005638 File Offset: 0x00003838
-		private void method_7()
+		private void StartFadeIn()
 		{
-			this.animationList_0.Clear();
-			PointF tileCenter = this.game_0.Board.GetTileCenter(this.tile_2);
-			this.piece_1.Translation = tileCenter;
-			this.animationList_0.Add(new FadeInAnimation(this.piece_1, 0.6f));
-			if (this.piece_2 != null)
+			this.animations.Clear();
+			PointF tileCenter = this.game.Board.GetTileCenter(this.destinationTile);
+			this.teleportingPiece.Translation = tileCenter;
+			this.animations.Add(new FadeInAnimation(this.teleportingPiece, 0.6f));
+			if (this.destroyedPiece != null)
 			{
-				if (this.piece_2 != this.piece_1)
+				if (this.destroyedPiece != this.teleportingPiece)
 				{
-					this.animationList_0.Add(new FadeOutAnimation(this.piece_2, 1.2f));
+					this.animations.Add(new FadeOutAnimation(this.destroyedPiece, 1.2f));
 				}
 			}
-			this.game_0.SoundSystem.PlaySound(SoundSystem.Sound.TeleportIn);
-			this.enum7_0 = TeleportAnimation.Enum7.const_3;
+			this.game.SoundSystem.PlaySound(SoundSystem.Sound.TeleportIn);
+			this.state = TeleportAnimation.State.FadingIn;
 		}
 
-		// Token: 0x060000BC RID: 188 RVA: 0x00002735 File Offset: 0x00000935
-		private void method_8()
+		private void UpdateFadingIn()
 		{
-			if (this.animationList_0.IsIdle())
+			if (this.animations.IsIdle())
 			{
-				this.method_9();
+				this.OnFadeInFinished();
 			}
 		}
 
-		// Token: 0x060000BD RID: 189 RVA: 0x0000274A File Offset: 0x0000094A
-		private void method_9()
+		private void OnFadeInFinished()
 		{
-			this.method_10();
+			this.Stop();
 		}
 
-		// Token: 0x060000BE RID: 190 RVA: 0x00002752 File Offset: 0x00000952
-		private void method_10()
+		private void Stop()
 		{
-			this.animationList_0.Clear();
-			this.enum7_0 = TeleportAnimation.Enum7.const_0;
+			this.animations.Clear();
+			this.state = TeleportAnimation.State.Idle;
 		}
 
-		// Token: 0x040000AC RID: 172
-		private const float float_0 = 0.25f;
+		private const float MoveDuration = 0.25f;
 
-		// Token: 0x040000AD RID: 173
-		private const float float_1 = 1.2f;
+		private const float FadeOutDuration = 1.2f;
 
-		// Token: 0x040000AE RID: 174
-		private const float float_2 = 0.6f;
+		private const float FadeInDuration = 0.6f;
 
-		// Token: 0x040000AF RID: 175
-		private Game game_0;
+		private Game game;
 
-		// Token: 0x040000B0 RID: 176
-		private Tile tile_0;
+		private Tile fromTile;
 
-		// Token: 0x040000B1 RID: 177
-		private Tile tile_1;
+		private Tile padTile;
 
-		// Token: 0x040000B2 RID: 178
-		private Tile tile_2;
+		private Tile destinationTile;
 
-		// Token: 0x040000B3 RID: 179
-		private Piece piece_0;
+		private Piece movingPiece;
 
-		// Token: 0x040000B4 RID: 180
-		private Piece piece_1;
+		private Piece teleportingPiece;
 
-		// Token: 0x040000B5 RID: 181
-		private Piece piece_2;
+		private Piece destroyedPiece;
 
-		// Token: 0x040000B6 RID: 182
-		private TeleportAnimation.Enum7 enum7_0;
+		private TeleportAnimation.State state;
 
-		// Token: 0x040000B7 RID: 183
-		private AnimationList animationList_0 = new AnimationList();
+		private AnimationList animations = new AnimationList();
 
-		// Token: 0x02000022 RID: 34
-		private enum Enum7
+		private enum State
 		{
-			// Token: 0x040000B9 RID: 185
-			const_0,
-			// Token: 0x040000BA RID: 186
-			const_1,
-			// Token: 0x040000BB RID: 187
-			const_2,
-			// Token: 0x040000BC RID: 188
-			const_3
+			Idle,
+			Moving,
+			FadingOut,
+			FadingIn
 		}
 	}
 }

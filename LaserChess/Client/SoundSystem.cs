@@ -10,39 +10,36 @@ using TG.Sound;
 
 namespace LaserChess.Client
 {
-	// Token: 0x0200000D RID: 13
 	public class SoundSystem : IDisposable
 	{
-		// Token: 0x06000049 RID: 73 RVA: 0x00003A40 File Offset: 0x00001C40
-		public SoundSystem(Control control_1)
+		public SoundSystem(Control control)
 		{
-			this.control_0 = control_1;
+			this.control = control;
 		}
 
-		// Token: 0x0600004A RID: 74 RVA: 0x00003B74 File Offset: 0x00001D74
-		public void Init(GraphicsClass graphicsClass_1)
+		public void Init(GraphicsClass graphicsClass)
 		{
-			this.graphicsClass_0 = graphicsClass_1;
-			this.button_0 = new Button(graphicsClass_1, "ButtonSoundOn", this);
-			this.button_0.Show();
-			this.button_0.SkinItem.ClickRoutine = new SkinButtonClass.ClickRoutineCallback(this.method_3);
-			this.button_1 = new Button(graphicsClass_1, "ButtonSoundOff", this);
-			this.button_1.Hide();
-			this.button_1.SkinItem.ClickRoutine = new SkinButtonClass.ClickRoutineCallback(this.method_2);
-			this.button_2 = new Button(graphicsClass_1, "ButtonMusicOn", this);
-			this.button_2.Show();
-			this.button_2.SkinItem.ClickRoutine = new SkinButtonClass.ClickRoutineCallback(this.method_4);
-			this.button_3 = new Button(graphicsClass_1, "ButtonMusicOff", this);
-			this.button_3.Hide();
-			this.button_3.SkinItem.ClickRoutine = new SkinButtonClass.ClickRoutineCallback(this.method_5);
+			this.graphics = graphicsClass;
+			this.soundOnButton = new Button(graphicsClass, "ButtonSoundOn", this);
+			this.soundOnButton.Show();
+			this.soundOnButton.SkinItem.ClickRoutine = new SkinButtonClass.ClickRoutineCallback(this.DisableSoundClicked);
+			this.soundOffButton = new Button(graphicsClass, "ButtonSoundOff", this);
+			this.soundOffButton.Hide();
+			this.soundOffButton.SkinItem.ClickRoutine = new SkinButtonClass.ClickRoutineCallback(this.EnableSoundClicked);
+			this.musicOnButton = new Button(graphicsClass, "ButtonMusicOn", this);
+			this.musicOnButton.Show();
+			this.musicOnButton.SkinItem.ClickRoutine = new SkinButtonClass.ClickRoutineCallback(this.DisableMusicClicked);
+			this.musicOffButton = new Button(graphicsClass, "ButtonMusicOff", this);
+			this.musicOffButton.Hide();
+			this.musicOffButton.SkinItem.ClickRoutine = new SkinButtonClass.ClickRoutineCallback(this.EnableMusicClicked);
 			try
 			{
-				this.method_0();
+				this.OpenSoundLibrary();
 				this.PlaySound(SoundSystem.Sound.Throb);
 			}
 			catch (Exception ex)
 			{
-				this.method_6();
+				this.DisableSoundControls();
 				Reporter.SoftError(string.Concat(new string[]
 				{
 					"Init(): Failed to initialize sound library.",
@@ -58,59 +55,53 @@ namespace LaserChess.Client
 			}
 		}
 
-		// Token: 0x0600004B RID: 75 RVA: 0x0000229E File Offset: 0x0000049E
-		public void PlaySound(SoundSystem.Sound sound_0)
+		public void PlaySound(SoundSystem.Sound sound)
 		{
-			this.queue_0.Enqueue(sound_0);
+			this.playQueue.Enqueue(sound);
 		}
 
-		// Token: 0x0600004C RID: 76 RVA: 0x000022AC File Offset: 0x000004AC
-		public void StopSound(SoundSystem.Sound sound_0)
+		public void StopSound(SoundSystem.Sound sound)
 		{
-			this.queue_1.Enqueue(sound_0);
+			this.stopQueue.Enqueue(sound);
 		}
 
-		// Token: 0x0600004D RID: 77 RVA: 0x00003CF8 File Offset: 0x00001EF8
 		public void FlushQueues()
 		{
-			while (this.queue_1.Count > 0)
+			while (this.stopQueue.Count > 0)
 			{
-				SoundSystem.Sound sound = this.queue_1.Dequeue();
-				if (this.oggPlayManager_0 != null)
+				SoundSystem.Sound sound = this.stopQueue.Dequeue();
+				if (this.oggPlayer != null)
 				{
-					this.oggPlayManager_0.StopOggFile((int)sound);
+					this.oggPlayer.StopOggFile((int)sound);
 					Thread.Sleep(0);
 				}
 			}
-			while (this.queue_0.Count > 0)
+			while (this.playQueue.Count > 0)
 			{
-				SoundSystem.Sound sound2 = this.queue_0.Dequeue();
-				if (((sound2 <= SoundSystem.Sound.Throb && this.bool_2) || (sound2 > SoundSystem.Sound.Throb && this.bool_1)) && this.oggPlayManager_0 != null)
+				SoundSystem.Sound sound2 = this.playQueue.Dequeue();
+				if (((sound2 <= SoundSystem.Sound.Throb && this.musicEnabled) || (sound2 > SoundSystem.Sound.Throb && this.soundEnabled)) && this.oggPlayer != null)
 				{
-					this.oggPlayManager_0.PlayOggFile(this.string_2[(int)sound2], (int)sound2);
+					this.oggPlayer.PlayOggFile(this.soundFiles[(int)sound2], (int)sound2);
 					Thread.Sleep(0);
 				}
 			}
 		}
 
-		// Token: 0x17000015 RID: 21
-		// (get) Token: 0x0600004F RID: 79 RVA: 0x000022F8 File Offset: 0x000004F8
-		// (set) Token: 0x0600004E RID: 78 RVA: 0x000022BA File Offset: 0x000004BA
 		public bool GameInProgress
 		{
 			get
 			{
-				return this.bool_3;
+				return this.gameInProgress;
 			}
 			set
 			{
-				if (value != this.bool_3)
+				if (value != this.gameInProgress)
 				{
-					this.bool_3 = value;
+					this.gameInProgress = value;
 					this.StopSound(SoundSystem.Sound.First);
 					this.StopSound(SoundSystem.Sound.Theme);
 					this.StopSound(SoundSystem.Sound.Throb);
-					if (this.bool_3)
+					if (this.gameInProgress)
 					{
 						this.PlaySound(SoundSystem.Sound.First);
 						return;
@@ -120,23 +111,22 @@ namespace LaserChess.Client
 			}
 		}
 
-		// Token: 0x06000050 RID: 80 RVA: 0x00003D94 File Offset: 0x00001F94
-		private void method_0()
+		private void OpenSoundLibrary()
 		{
-			for (int i = 0; i < this.string_1.Length; i++)
+			for (int i = 0; i < this.requiredDlls.Length; i++)
 			{
-				if (!File.Exists(Application.StartupPath + "\\" + this.string_1[i]))
+				if (!File.Exists(Application.StartupPath + "\\" + this.requiredDlls[i]))
 				{
-					throw new DllNotFoundException("Unable to load DLL '" + this.string_1[i] + "': The specified module could not be found.");
+					throw new DllNotFoundException("Unable to load DLL '" + this.requiredDlls[i] + "': The specified module could not be found.");
 				}
 			}
 			if (!Directory.Exists(Application.StartupPath + "\\sounds\\"))
 			{
 				Directory.CreateDirectory(Application.StartupPath + "\\sounds\\");
 			}
-			for (int j = 0; j < this.string_2.Length; j++)
+			for (int j = 0; j < this.soundFiles.Length; j++)
 			{
-				string text = Application.StartupPath + "\\sounds\\" + this.string_2[j];
+				string text = Application.StartupPath + "\\sounds\\" + this.soundFiles[j];
 				if (File.Exists(text))
 				{
 					DateTime lastWriteTimeUtc = File.GetLastWriteTimeUtc(text);
@@ -150,7 +140,7 @@ namespace LaserChess.Client
 				{
 					FileStream fileStream = new FileStream(text, FileMode.Create);
 					byte[] array = new byte[1024];
-					Stream resourceStream = this.graphicsClass_0.Skin.GetResourceStream("sound/" + this.string_2[j]);
+					Stream resourceStream = this.graphics.Skin.GetResourceStream("sound/" + this.soundFiles[j]);
 					if (resourceStream != null)
 					{
 						for (int k = resourceStream.Read(array, 0, array.GetLength(0)); k > 0; k = resourceStream.Read(array, 0, array.GetLength(0)))
@@ -161,34 +151,33 @@ namespace LaserChess.Client
 					}
 					fileStream.Close();
 				}
-				this.string_2[j] = text;
+				this.soundFiles[j] = text;
 			}
-			if ((this.oggPlayManager_0 = new OggPlayManager(this.control_0, false, OggPlayManager.SampleSize.SixteenBits)) != null)
+			if ((this.oggPlayer = new OggPlayManager(this.control, false, OggPlayManager.SampleSize.SixteenBits)) != null)
 			{
-				this.oggPlayManager_0.PlayOggFileResult += this.method_7;
-				this.oggPlayManager_0.StopOggFileNow += this.method_7;
+				this.oggPlayer.PlayOggFileResult += this.OnOggPlayEvent;
+				this.oggPlayer.StopOggFileNow += this.OnOggPlayEvent;
 			}
-			this.bool_1 = true;
-			this.bool_2 = true;
+			this.soundEnabled = true;
+			this.musicEnabled = true;
 		}
 
-		// Token: 0x06000051 RID: 81 RVA: 0x00003F78 File Offset: 0x00002178
-		private void method_1()
+		private void CloseSoundLibrary()
 		{
 			try
 			{
-				this.bool_1 = false;
-				this.bool_2 = false;
-				if (this.oggPlayManager_0 != null)
+				this.soundEnabled = false;
+				this.musicEnabled = false;
+				if (this.oggPlayer != null)
 				{
 					for (SoundSystem.Sound sound = SoundSystem.Sound.First; sound < SoundSystem.Sound.Last; sound++)
 					{
 						this.StopSound(sound);
 					}
 					this.FlushQueues();
-					this.oggPlayManager_0.WaitForAllOggFiles(new TimeSpan(0, 0, 2));
-					this.oggPlayManager_0.Dispose();
-					this.oggPlayManager_0 = null;
+					this.oggPlayer.WaitForAllOggFiles(new TimeSpan(0, 0, 2));
+					this.oggPlayer.Dispose();
+					this.oggPlayer = null;
 				}
 			}
 			catch (NullReferenceException ex)
@@ -208,19 +197,17 @@ namespace LaserChess.Client
 			}
 		}
 
-		// Token: 0x06000052 RID: 82 RVA: 0x00002300 File Offset: 0x00000500
-		private bool method_2(SkinButtonClass skinButtonClass_0)
+		private bool EnableSoundClicked(SkinButtonClass button)
 		{
-			this.bool_1 = true;
-			this.button_0.Show();
-			skinButtonClass_0.Hide();
+			this.soundEnabled = true;
+			this.soundOnButton.Show();
+			button.Hide();
 			return true;
 		}
 
-		// Token: 0x06000053 RID: 83 RVA: 0x00004054 File Offset: 0x00002254
-		private bool method_3(SkinButtonClass skinButtonClass_0)
+		private bool DisableSoundClicked(SkinButtonClass button)
 		{
-			this.bool_1 = false;
+			this.soundEnabled = false;
 			for (SoundSystem.Sound sound = SoundSystem.Sound.First; sound < SoundSystem.Sound.Last; sound++)
 			{
 				if (sound > SoundSystem.Sound.Throb)
@@ -228,33 +215,31 @@ namespace LaserChess.Client
 					this.StopSound(sound);
 				}
 			}
-			this.button_1.Show();
-			skinButtonClass_0.Hide();
+			this.soundOffButton.Show();
+			button.Hide();
 			return true;
 		}
 
-		// Token: 0x06000054 RID: 84 RVA: 0x0000231B File Offset: 0x0000051B
-		private bool method_4(SkinButtonClass skinButtonClass_0)
+		private bool DisableMusicClicked(SkinButtonClass button)
 		{
 			this.StopSound(SoundSystem.Sound.First);
 			this.StopSound(SoundSystem.Sound.Theme);
 			this.StopSound(SoundSystem.Sound.Throb);
-			this.bool_2 = false;
-			this.button_3.Show();
-			skinButtonClass_0.Hide();
+			this.musicEnabled = false;
+			this.musicOffButton.Show();
+			button.Hide();
 			return true;
 		}
 
-		// Token: 0x06000055 RID: 85 RVA: 0x00004094 File Offset: 0x00002294
-		private bool method_5(SkinButtonClass skinButtonClass_0)
+		private bool EnableMusicClicked(SkinButtonClass button)
 		{
 			this.StopSound(SoundSystem.Sound.First);
 			this.StopSound(SoundSystem.Sound.Theme);
 			this.StopSound(SoundSystem.Sound.Throb);
-			this.bool_2 = true;
-			this.button_2.Show();
-			skinButtonClass_0.Hide();
-			if (!this.bool_3)
+			this.musicEnabled = true;
+			this.musicOnButton.Show();
+			button.Hide();
+			if (!this.gameInProgress)
 			{
 				this.PlaySound(SoundSystem.Sound.Throb);
 			}
@@ -265,17 +250,15 @@ namespace LaserChess.Client
 			return true;
 		}
 
-		// Token: 0x06000056 RID: 86 RVA: 0x0000234B File Offset: 0x0000054B
-		private void method_6()
+		private void DisableSoundControls()
 		{
-			this.bool_1 = false;
-			this.bool_2 = false;
-			this.button_2.Hide();
-			this.button_0.Hide();
+			this.soundEnabled = false;
+			this.musicEnabled = false;
+			this.musicOnButton.Hide();
+			this.soundOnButton.Hide();
 		}
 
-		// Token: 0x06000057 RID: 87 RVA: 0x000040E8 File Offset: 0x000022E8
-		private void method_7(object sender, OggPlayEventArgs e)
+		private void OnOggPlayEvent(object sender, OggPlayEventArgs e)
 		{
 			if (e == null)
 			{
@@ -288,7 +271,7 @@ namespace LaserChess.Client
 				{
 					return;
 				}
-				if (this.bool_2)
+				if (this.musicEnabled)
 				{
 					switch (playId)
 					{
@@ -308,134 +291,90 @@ namespace LaserChess.Client
 			}
 		}
 
-		// Token: 0x06000058 RID: 88 RVA: 0x00004150 File Offset: 0x00002350
-		protected virtual void Dispose(bool bool_4)
+		protected virtual void Dispose(bool disposing)
 		{
 			lock (this)
 			{
-				if (!this.bool_0)
+				if (!this.disposed)
 				{
-					if (bool_4 && this.oggPlayManager_0 != null)
+					if (disposing && this.oggPlayer != null)
 					{
-						this.method_1();
+						this.CloseSoundLibrary();
 					}
-					this.bool_0 = true;
+					this.disposed = true;
 				}
 			}
 		}
 
-		// Token: 0x06000059 RID: 89 RVA: 0x00002371 File Offset: 0x00000571
 		public void Dispose()
 		{
 			this.Dispose(true);
 			GC.SuppressFinalize(this);
 		}
 
-		// Token: 0x0400002B RID: 43
-		private const string string_0 = "\\sounds\\";
+		private const string SoundsFolder = "\\sounds\\";
 
-		// Token: 0x0400002C RID: 44
-		private bool bool_0;
+		private bool disposed;
 
-		// Token: 0x0400002D RID: 45
-		private bool bool_1 = true;
+		private bool soundEnabled = true;
 
-		// Token: 0x0400002E RID: 46
-		private bool bool_2 = true;
+		private bool musicEnabled = true;
 
-		// Token: 0x0400002F RID: 47
-		private Control control_0;
+		private Control control;
 
-		// Token: 0x04000030 RID: 48
-		private OggPlayManager oggPlayManager_0;
+		private OggPlayManager oggPlayer;
 
-		// Token: 0x04000031 RID: 49
-		private string[] string_1 = new string[] { "TgPlayOgg.dll", "TgPlayOgg_vorbisfile.dll" };
+		private string[] requiredDlls = new string[] { "TgPlayOgg.dll", "TgPlayOgg_vorbisfile.dll" };
 
-		// Token: 0x04000032 RID: 50
-		private string[] string_2 = new string[]
+		private string[] soundFiles = new string[]
 		{
 			"Intro.ogg", "Theme.ogg", "Throb.ogg", "GameWin.ogg", "GameLose.ogg", "GameDraw.ogg", "Minimize.ogg", "Restore.ogg", "ButtonDown.ogg", "ButtonUp.ogg",
 			"KeyPress.ogg", "MovePiece.ogg", "TurnPiece.ogg", "CapturePiece.ogg", "TeleportOut.ogg", "TeleportIn.ogg", "FireLaser.ogg", "IncomingChatMsg.ogg", "OutgoingChatMsg.ogg", "PieceHit1.ogg",
 			"PieceHit2.ogg", "PieceHit3.ogg", "PieceHit4.ogg"
 		};
 
-		// Token: 0x04000033 RID: 51
-		private GraphicsClass graphicsClass_0;
+		private GraphicsClass graphics;
 
-		// Token: 0x04000034 RID: 52
-		private Button button_0;
+		private Button soundOnButton;
 
-		// Token: 0x04000035 RID: 53
-		private Button button_1;
+		private Button soundOffButton;
 
-		// Token: 0x04000036 RID: 54
-		private Button button_2;
+		private Button musicOnButton;
 
-		// Token: 0x04000037 RID: 55
-		private Button button_3;
+		private Button musicOffButton;
 
-		// Token: 0x04000038 RID: 56
-		private bool bool_3;
+		private bool gameInProgress;
 
-		// Token: 0x04000039 RID: 57
-		private Queue<SoundSystem.Sound> queue_0 = new Queue<SoundSystem.Sound>();
+		private Queue<SoundSystem.Sound> playQueue = new Queue<SoundSystem.Sound>();
 
-		// Token: 0x0400003A RID: 58
-		private Queue<SoundSystem.Sound> queue_1 = new Queue<SoundSystem.Sound>();
+		private Queue<SoundSystem.Sound> stopQueue = new Queue<SoundSystem.Sound>();
 
-		// Token: 0x0200000E RID: 14
 		public enum Sound
 		{
-			// Token: 0x0400003C RID: 60
 			First,
-			// Token: 0x0400003D RID: 61
 			Intro = 0,
-			// Token: 0x0400003E RID: 62
 			Theme,
-			// Token: 0x0400003F RID: 63
 			Throb,
-			// Token: 0x04000040 RID: 64
 			GameWin,
-			// Token: 0x04000041 RID: 65
 			GameLose,
-			// Token: 0x04000042 RID: 66
 			GameDraw,
-			// Token: 0x04000043 RID: 67
 			Minimize,
-			// Token: 0x04000044 RID: 68
 			Restore,
-			// Token: 0x04000045 RID: 69
 			ButtonDown,
-			// Token: 0x04000046 RID: 70
 			ButtonUp,
-			// Token: 0x04000047 RID: 71
 			KeyPress,
-			// Token: 0x04000048 RID: 72
 			MovePiece,
-			// Token: 0x04000049 RID: 73
 			TurnPiece,
-			// Token: 0x0400004A RID: 74
 			CapturePiece,
-			// Token: 0x0400004B RID: 75
 			TeleportOut,
-			// Token: 0x0400004C RID: 76
 			TeleportIn,
-			// Token: 0x0400004D RID: 77
 			FireLaser,
-			// Token: 0x0400004E RID: 78
 			IncomingChatMsg,
-			// Token: 0x0400004F RID: 79
 			OutgoingChatMsg,
-			// Token: 0x04000050 RID: 80
 			PieceHit1,
-			// Token: 0x04000051 RID: 81
 			PieceHit2,
-			// Token: 0x04000052 RID: 82
 			PieceHit3,
-			// Token: 0x04000053 RID: 83
 			PieceHit4,
-			// Token: 0x04000054 RID: 84
 			Last
 		}
 	}
